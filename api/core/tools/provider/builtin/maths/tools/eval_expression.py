@@ -1,17 +1,17 @@
 import logging
-from datetime import datetime, timezone
-from typing import Any, Dict, List, Union
+from typing import Any, Union
+
+import numexpr as ne
 
 from core.tools.entities.tool_entities import ToolInvokeMessage
 from core.tools.tool.builtin_tool import BuiltinTool
-from pytz import timezone as pytz_timezone
-import numexpr as ne
+
 
 class EvaluateExpressionTool(BuiltinTool):
     def _invoke(self, 
                 user_id: str,
-               tool_parameters: Dict[str, Any], 
-        ) -> Union[ToolInvokeMessage, List[ToolInvokeMessage]]:
+               tool_parameters: dict[str, Any], 
+        ) -> Union[ToolInvokeMessage, list[ToolInvokeMessage]]:
         """
             invoke tools
         """
