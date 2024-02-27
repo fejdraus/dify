@@ -127,6 +127,8 @@ class ApiTool(Tool):
                     value = parameters[parameter['name']]
                 elif parameter['required']:
                     raise ToolProviderCredentialValidationError(f"Missing required parameter {parameter['name']}")
+                else:
+                    value = (parameter.get('schema', {}) or {}).get('default', '')
                 path_params[parameter['name']] = value
 
             elif parameter['in'] == 'query':
@@ -135,6 +137,8 @@ class ApiTool(Tool):
                     value = parameters[parameter['name']]
                 elif parameter['required']:
                     raise ToolProviderCredentialValidationError(f"Missing required parameter {parameter['name']}")
+                else:
+                    value = (parameter.get('schema', {}) or {}).get('default', '')
                 params[parameter['name']] = value
 
             elif parameter['in'] == 'cookie':
@@ -143,6 +147,8 @@ class ApiTool(Tool):
                     value = parameters[parameter['name']]
                 elif parameter['required']:
                     raise ToolProviderCredentialValidationError(f"Missing required parameter {parameter['name']}")
+                else:
+                    value = (parameter.get('schema', {}) or {}).get('default', '')
                 cookies[parameter['name']] = value
 
             elif parameter['in'] == 'header':
@@ -151,6 +157,8 @@ class ApiTool(Tool):
                     value = parameters[parameter['name']]
                 elif parameter['required']:
                     raise ToolProviderCredentialValidationError(f"Missing required parameter {parameter['name']}")
+                else:
+                    value = (parameter.get('schema', {}) or {}).get('default', '')
                 headers[parameter['name']] = value
 
         # check if there is a request body and handle it
@@ -192,7 +200,7 @@ class ApiTool(Tool):
         
         # replace path parameters
         for name, value in path_params.items():
-            url = url.replace(f'{{{name}}}', value)
+            url = url.replace(f'{{{name}}}', f'{value}')
 
         # parse http body data if needed, for GET/HEAD/OPTIONS/TRACE, the body is ignored
         if 'Content-Type' in headers:
