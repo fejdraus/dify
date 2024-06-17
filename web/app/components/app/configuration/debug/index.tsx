@@ -6,6 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react'
 import { setAutoFreeze } from 'immer'
 import { useBoolean } from 'ahooks'
 import { useContext } from 'use-context-selector'
+import { useShallow } from 'zustand/react/shallow'
 import HasNotSetAPIKEY from '../base/warning-mask/has-not-set-api'
 import FormattingChanged from '../base/warning-mask/formatting-changed'
 import GroupName from '../base/group-name'
@@ -40,7 +41,7 @@ import PromptLogModal from '@/app/components/base/prompt-log-modal'
 import { useStore as useAppStore } from '@/app/components/app/store'
 
 type IDebug = {
-  hasSetAPIKEY: boolean
+  isAPIKeySet: boolean
   onSetting: () => void
   inputs: Inputs
   modelParameterParams: Pick<ModelParameterModalProps, 'setModel' | 'onCompletionParamsChange'>
@@ -50,7 +51,7 @@ type IDebug = {
 }
 
 const Debug: FC<IDebug> = ({
-  hasSetAPIKEY = true,
+  isAPIKeySet = true,
   onSetting,
   inputs,
   modelParameterParams,
@@ -367,7 +368,12 @@ const Debug: FC<IDebug> = ({
     handleVisionConfigInMultipleModel()
   }, [multipleModelConfigs, mode])
 
-  const { currentLogItem, setCurrentLogItem, showPromptLogModal, setShowPromptLogModal } = useAppStore()
+  const { currentLogItem, setCurrentLogItem, showPromptLogModal, setShowPromptLogModal } = useAppStore(useShallow(state => ({
+    currentLogItem: state.currentLogItem,
+    setCurrentLogItem: state.setCurrentLogItem,
+    showPromptLogModal: state.showPromptLogModal,
+    setShowPromptLogModal: state.setShowPromptLogModal,
+  })))
   const [width, setWidth] = useState(0)
   const ref = useRef<HTMLDivElement>(null)
 
@@ -497,7 +503,7 @@ const Debug: FC<IDebug> = ({
           onCancel={handleCancel}
         />
       )}
-      {!hasSetAPIKEY && (<HasNotSetAPIKEY isTrailFinished={!IS_CE_EDITION} onSetting={onSetting} />)}
+      {!isAPIKeySet && (<HasNotSetAPIKEY isTrailFinished={!IS_CE_EDITION} onSetting={onSetting} />)}
     </>
   )
 }

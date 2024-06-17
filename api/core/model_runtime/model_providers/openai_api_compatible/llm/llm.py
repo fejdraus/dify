@@ -74,7 +74,7 @@ class OAIAPICompatLargeLanguageModel(_CommonOAI_API_Compat, LargeLanguageModel):
             tools=tools,
             stop=stop,
             stream=stream,
-            user=user
+            user=user,
         )
 
     def get_num_tokens(self, model: str, credentials: dict, prompt_messages: list[PromptMessage],
@@ -154,7 +154,7 @@ class OAIAPICompatLargeLanguageModel(_CommonOAI_API_Compat, LargeLanguageModel):
                 json_result['object'] = 'chat.completion'
             elif (completion_type is LLMMode.COMPLETION and json_result['object'] == ''):
                 json_result['object'] = 'text_completion'
-                
+
             if (completion_type is LLMMode.CHAT
                     and ('object' not in json_result or json_result['object'] != 'chat.completion')):
                 raise CredentialsValidateFailedError(
@@ -280,6 +280,12 @@ class OAIAPICompatLargeLanguageModel(_CommonOAI_API_Compat, LargeLanguageModel):
             'Content-Type': 'application/json',
             'Accept-Charset': 'utf-8',
         }
+        extra_headers = credentials.get('extra_headers')
+        if extra_headers is not None:
+            headers = {
+              **headers,
+              **extra_headers,
+            }
 
         api_key = credentials.get('api_key')
         if api_key:
@@ -425,6 +431,7 @@ class OAIAPICompatLargeLanguageModel(_CommonOAI_API_Compat, LargeLanguageModel):
         finish_reason = 'Unknown'
 
         for chunk in response.iter_lines(decode_unicode=True, delimiter=delimiter):
+            chunk = chunk.strip()
             if chunk:
                 # ignore sse comments
                 if chunk.startswith(':'):

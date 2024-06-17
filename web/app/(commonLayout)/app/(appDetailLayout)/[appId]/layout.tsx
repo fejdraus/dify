@@ -5,6 +5,7 @@ import React, { useCallback, useEffect, useState } from 'react'
 import { usePathname, useRouter } from 'next/navigation'
 import cn from 'classnames'
 import { useTranslation } from 'react-i18next'
+import { useShallow } from 'zustand/react/shallow'
 import s from './style.module.css'
 import { useStore } from '@/app/components/app/store'
 import AppSideBar from '@/app/components/app-sidebar'
@@ -31,8 +32,12 @@ const AppDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
   const pathname = usePathname()
   const media = useBreakpoints()
   const isMobile = media === MediaType.mobile
-  const { isCurrentWorkspaceManager } = useAppContext()
-  const { appDetail, setAppDetail, setAppSiderbarExpand } = useStore()
+  const { isCurrentWorkspaceManager, isCurrentWorkspaceEditor } = useAppContext()
+  const { appDetail, setAppDetail, setAppSiderbarExpand } = useStore(useShallow(state => ({
+    appDetail: state.appDetail,
+    setAppDetail: state.setAppDetail,
+    setAppSiderbarExpand: state.setAppSiderbarExpand,
+  })))
   const [navigation, setNavigation] = useState<Array<{
     name: string
     href: string
@@ -40,9 +45,9 @@ const AppDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
     selectedIcon: NavIcon
   }>>([])
 
-  const getNavigations = useCallback((appId: string, isCurrentWorkspaceManager: boolean, mode: string) => {
+  const getNavigations = useCallback((appId: string, isCurrentWorkspaceManager: boolean, isCurrentWorkspaceEditor: boolean, mode: string) => {
     const navs = [
-      ...(isCurrentWorkspaceManager
+      ...(isCurrentWorkspaceEditor
         ? [{
           name: t('common.appMenus.promptEng'),
           href: `/app/${appId}/${(mode === 'workflow' || mode === 'advanced-chat') ? 'workflow' : 'configuration'}`,
@@ -57,14 +62,17 @@ const AppDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
         icon: TerminalSquare,
         selectedIcon: TerminalSquareSolid,
       },
-      {
-        name: mode !== 'workflow'
-          ? t('common.appMenus.logAndAnn')
-          : t('common.appMenus.logs'),
-        href: `/app/${appId}/logs`,
-        icon: FileHeart02,
-        selectedIcon: FileHeart02Solid,
-      },
+      ...(isCurrentWorkspaceManager
+        ? [{
+          name: mode !== 'workflow'
+            ? t('common.appMenus.logAndAnn')
+            : t('common.appMenus.logs'),
+          href: `/app/${appId}/logs`,
+          icon: FileHeart02,
+          selectedIcon: FileHeart02Solid,
+        }]
+        : []
+      ),
       {
         name: t('common.appMenus.overview'),
         href: `/app/${appId}/overview`,
@@ -99,10 +107,13 @@ const AppDetailLayout: FC<IAppDetailLayoutProps> = (props) => {
       }
       else {
         setAppDetail(res)
-        setNavigation(getNavigations(appId, isCurrentWorkspaceManager, res.mode))
+        setNavigation(getNavigations(appId, isCurrentWorkspaceManager, isCurrentWorkspaceEditor, res.mode))
       }
+    }).catch((e: any) => {
+      if (e.status === 404)
+        router.replace('/apps')
     })
-  }, [appId, isCurrentWorkspaceManager])
+  }, [appId, isCurrentWorkspaceManager, isCurrentWorkspaceEditor])
 
   useUnmount(() => {
     setAppDetail()

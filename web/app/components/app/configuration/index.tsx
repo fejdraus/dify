@@ -8,6 +8,7 @@ import produce from 'immer'
 import { useBoolean, useGetState } from 'ahooks'
 import { clone, isEqual } from 'lodash-es'
 import { CodeBracketIcon } from '@heroicons/react/20/solid'
+import { useShallow } from 'zustand/react/shallow'
 import Button from '../../base/button'
 import Loading from '../../base/loading'
 import AppPublisher from '../app-publisher'
@@ -65,7 +66,10 @@ type PublishConfig = {
 const Configuration: FC = () => {
   const { t } = useTranslation()
   const { notify } = useContext(ToastContext)
-  const { appDetail, setAppSiderbarExpand } = useAppStore()
+  const { appDetail, setAppSiderbarExpand } = useAppStore(useShallow(state => ({
+    appDetail: state.appDetail,
+    setAppSiderbarExpand: state.setAppSiderbarExpand,
+  })))
   const [formattingChanged, setFormattingChanged] = useState(false)
   const { setShowAccountSettingModal } = useModalContext()
   const [hasFetchedDetail, setHasFetchedDetail] = useState(false)
@@ -251,7 +255,7 @@ const Configuration: FC = () => {
     })
   }
 
-  const { hasSettedApiKey } = useProviderContext()
+  const { isAPIKeySet } = useProviderContext()
   const {
     currentModel: currModel,
     textGenerationModelList,
@@ -674,7 +678,7 @@ const Configuration: FC = () => {
   return (
     <ConfigContext.Provider value={{
       appId,
-      hasSetAPIKEY: hasSettedApiKey,
+      isAPIKeySet,
       isTrailFinished: false,
       mode,
       modelModeType,
@@ -814,7 +818,7 @@ const Configuration: FC = () => {
             {!isMobile && <div className="relative flex flex-col w-1/2 h-full overflow-y-auto grow " style={{ borderColor: 'rgba(0, 0, 0, 0.02)' }}>
               <div className='flex flex-col h-0 border-t border-l grow rounded-tl-2xl bg-gray-50 '>
                 <Debug
-                  hasSetAPIKEY={hasSettedApiKey}
+                  isAPIKeySet={isAPIKeySet}
                   onSetting={() => setShowAccountSettingModal({ payload: 'provider' })}
                   inputs={inputs}
                   modelParameterParams={{
@@ -877,7 +881,7 @@ const Configuration: FC = () => {
         {isMobile && (
           <Drawer showClose isOpen={isShowDebugPanel} onClose={hideDebugPanel} mask footer={null} panelClassname='!bg-gray-50'>
             <Debug
-              hasSetAPIKEY={hasSettedApiKey}
+              isAPIKeySet={isAPIKeySet}
               onSetting={() => setShowAccountSettingModal({ payload: 'provider' })}
               inputs={inputs}
               modelParameterParams={{
